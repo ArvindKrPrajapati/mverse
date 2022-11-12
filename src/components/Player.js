@@ -11,6 +11,8 @@ export default function Player({ url }) {
     const webview = useRef()
 
     const injected = `
+    window.alert=()=>{}
+    alert=()=>{}
     document.addEventListener("fullscreenchange", function (e) {
          let fs=document.webkitIsFullScreen
          window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs})) 
@@ -21,6 +23,24 @@ export default function Player({ url }) {
     const resizeVideo = () => {
         switch (resizeMode) {
             case "contain":
+                setResizeMode("contain")
+                contain()
+                break;
+            case "fill":
+                setResizeMode("fill")
+                fill()
+                break;
+            case "cover":
+                setResizeMode("cover")
+                cover()
+                break;
+            default:
+                break;
+        }
+    }
+    const handleClick = () => {
+        switch (resizeMode) {
+            case "contain":
                 setResizeMode("fill")
                 fill()
                 break;
@@ -28,9 +48,11 @@ export default function Player({ url }) {
                 setResizeMode("cover")
                 cover()
                 break;
-            default:
+            case "cover":
                 setResizeMode("contain")
                 contain()
+                break;
+            default:
                 break;
         }
     }
@@ -68,8 +90,8 @@ export default function Player({ url }) {
                     injectedJavaScript={injected}
                     onMessage={(d) => {
                         const e = JSON.parse(d.nativeEvent.data)
-                        console.log(e);
                         setFullScreen(e.isFullScreen)
+                        resizeVideo()
                     }}
 
 
@@ -106,7 +128,7 @@ export default function Player({ url }) {
                     source={{ uri: url }}
                 />
             </View>
-            <TouchableHighlight onPress={resizeVideo} style={styles.resizeBtn}>
+            <TouchableHighlight onPress={handleClick} style={styles.resizeBtn}>
                 <Text style={styles.resizeText}>Resize video ( {resizeMode} )</Text>
             </TouchableHighlight>
         </>
@@ -114,7 +136,7 @@ export default function Player({ url }) {
 }
 const styles = StyleSheet.create({
     webview: {
-        aspectRatio: 16 / 9
+        aspectRatio: 16 / 9,
     },
     controls: {
         backgroundColor: "rgba(0,0,0,0.2)",
