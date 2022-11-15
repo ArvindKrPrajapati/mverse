@@ -11,11 +11,17 @@ export default function Player({ url }) {
     const webview = useRef()
 
     const injected = `
-    window.alert=()=>{}
-    alert=()=>{}
+    alert=''
+    confirm=()=>false
+    window.onbeforeunload=function(){}
+    document.querySelector(".jw-spacer").innerHTML='<div id="r-btn" style="display:flex; justify-content:end;margin:10px"><button style="padding:5px">Resize</button></div>'
+    document.querySelector("#r-btn").addEventListener("click",function(){
+        let fs=document.webkitIsFullScreen
+        window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,clicked:true})) 
+      })
     document.addEventListener("fullscreenchange", function (e) {
          let fs=document.webkitIsFullScreen
-         window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs})) 
+         window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,clicked:false})) 
         });`
 
 
@@ -92,6 +98,9 @@ export default function Player({ url }) {
                         const e = JSON.parse(d.nativeEvent.data)
                         setFullScreen(e.isFullScreen)
                         resizeVideo()
+                        if (e.clicked) {
+                            handleClick()
+                        }
                     }}
 
 
@@ -128,9 +137,9 @@ export default function Player({ url }) {
                     source={{ uri: url }}
                 />
             </View>
-            <TouchableHighlight onPress={handleClick} style={styles.resizeBtn}>
+            {/* <TouchableHighlight onPress={handleClick} style={styles.resizeBtn}>
                 <Text style={styles.resizeText}>Resize video ( {resizeMode} )</Text>
-            </TouchableHighlight>
+            </TouchableHighlight> */}
         </>
     )
 }
