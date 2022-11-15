@@ -1,5 +1,8 @@
 import { token } from "../utils/constants";
 import { url } from "../utils/constants";
+import { db } from './firebase-config'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const common = () => {
     return {
@@ -173,3 +176,26 @@ export const _getTvImdb = async (movieid) => {
     }
 }
 
+export const _createUser = async (id) => {
+    try {
+        const userRef = doc(db, "users", id)
+        const res = await setDoc(userRef, { deviceId: id })
+        const user = { loggedIn: true }
+        await AsyncStorage.setItem("currentUser", JSON.stringify(user))
+
+        return user;
+    } catch (error) {
+        console.log(error);
+        return { loggedIn: true }
+    }
+}
+export const _checkVersion = async () => {
+    try {
+        const versionRef = doc(db, "version", "mverse")
+        const res = await getDoc(versionRef)
+        const data = res.data();
+        return data
+    } catch (error) {
+        return error
+    }
+}

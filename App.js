@@ -1,19 +1,16 @@
 import { View, Text, StatusBar } from 'react-native'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { theme } from './src/utils/theme'
 import RootNavigator from './src/navigation/RootNavigator'
-import SplashScreen from 'react-native-splash-screen'
+import { AppContextProvider } from './src/context/AppContext'
 
 
 
 export default function App() {
-  useEffect(() => {
-    SplashScreen.hide();
-  }, [])
   return (
-    <>
+    <AppContextProvider>
       <StatusBar backgroundColor={theme.colors.primary} barStyle="light-content" />
       <RootNavigator />
-    </>
+    </AppContextProvider>
   )
 }
