@@ -5,14 +5,31 @@ import { theme } from '../../utils/theme'
 import Player from '../../components/Player'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { _getEpisodes } from '../../utils/api.service'
+
+const s = [
+    {
+        id: 1,
+        name: "Gdrive Player",
+        url: ""
+    },
+    {
+        id: 2,
+        name: "Vidsrc",
+        url: ""
+    }
+]
+
 export default function Play({ route, navigation }) {
+
     const [data, setData] = useState(route.params.data)
     const [url, setUrl] = useState('')
     const [seasons, setSeasons] = useState()
     const [epLoading, setEpLoading] = useState(true)
     const [episodes, setEpisodes] = useState()
     const [openModal, setOpenModal] = useState(false)
+    const [servers, setServers] = useState(s)
 
+    const [chnangeServerModal, setChnangeServerModal] = useState(false)
 
     const getSeriesDetails = async () => {
         const sno = data.season_number
@@ -22,21 +39,38 @@ export default function Play({ route, navigation }) {
         setEpLoading(false)
     }
 
+    const handleChangeServer = (newUrl) => {
+        setUrl(newUrl)
+        setChnangeServerModal(false)
+    }
+
     useEffect(() => {
         setSeasons(route.params.seasons);
-        let u = "http://database.gdriveplayer.us/player.php?imdb="
+        const urls = ["http://database.gdriveplayer.us/player.php?imdb=", "https://vidsrc.me/embed/"]
         if (route.params.isTv) {
-            u += data.imdb_id + "&type=series&season=" + data.season_number + "&episode=" + data.episode_number
+            s[0].url = urls[0] + data.imdb_id + "&type=series&season=" + data.season_number + "&episode=" + data.episode_number
+            s[1].url = urls[1] + data.imdb_id + "/" + data.season_number + "-" + data.episode_number
             getSeriesDetails()
         } else {
-            u += data.imdb_id
+            s[0].url = urls[0] + data.imdb_id
+            s[1].url = urls[1] + data.imdb_id
         }
-        setUrl(u);
+        setServers(s)
+        setUrl(servers[0].url);
     }, [])
     return (
         <>
             <Player url={url} />
             <Container style={styles.container}>
+                <TouchableHighlight
+                    underlayColor={theme.colors.secondary}
+                    onPress={() => { setChnangeServerModal(true) }}
+                >
+                    <View style={styles.changeServerBtn}>
+                        <Text style={{ fontSize: 15, fontWeight: "500", color: "#eee" }}>Change Server</Text>
+                        <Icon name='chevron-down' size={20} color="#eee" />
+                    </View>
+                </TouchableHighlight>
                 <Text style={styles.title}>{data.title || data.name}</Text>
                 {route.params.isTv && <Text style={[styles.title, { fontSize: 16 }]}>{route.params.series.title}</Text>}
 
@@ -142,6 +176,43 @@ export default function Play({ route, navigation }) {
                     )
                 }
             </Container>
+            {/* modal to change server */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={chnangeServerModal}
+                onRequestClose={() => {
+                    setChnangeServerModal(false)
+                }}
+            >
+
+                <View style={{ flex: 1, justifyContent: "space-between" }}>
+                    <Pressable style={{ height: "50%" }} onPress={() => { setChnangeServerModal(false) }} >
+
+                    </Pressable>
+                    <View style={{ padding: 20, height: "50%", borderRadius: 20, backgroundColor: theme.colors.primary }}>
+                        <Text style={[styles.normalText, { marginVertical: 10 }]}>If Current server doesnt work try onother server below</Text>
+                        <ScrollView
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            {
+                                servers.map((o) => (
+                                    <TouchableHighlight
+                                        key={o.id}
+                                        onPress={() => { handleChangeServer(o.url) }}
+                                        disabled={url == o.url}
+                                        style={o.url == url ? [styles.selectBtn, styles.active] : [styles.selectBtn, { backgroundColor: theme.colors.secondary }]}>
+                                        <Text style={o.url == url ? [styles.bold, { color: theme.colors.secondary }] : styles.bold}>{o.name}</Text>
+                                    </TouchableHighlight>
+                                ))
+                            }
+                        </ScrollView>
+                    </View>
+                </View>
+
+
+            </Modal>
         </>
     )
 }
@@ -154,6 +225,13 @@ const styles = StyleSheet.create({
         color: theme.colors.textColor,
         fontSize: 20,
         fontWeight: "bold"
+    },
+    normalText: {
+        color: theme.colors.textColor,
+    },
+    bold: {
+        color: theme.colors.textColor,
+        fontWeight: "500",
     },
     series: {
         padding: 15
@@ -170,4 +248,13 @@ const styles = StyleSheet.create({
     active: {
         backgroundColor: "wheat",
     },
+    changeServerBtn: {
+        flexDirection: "row",
+        backgroundColor: theme.colors.primary,
+        alignItems: "center",
+        padding: 12,
+        margin: -10,
+        marginBottom: 10,
+        justifyContent: "space-between"
+    }
 })

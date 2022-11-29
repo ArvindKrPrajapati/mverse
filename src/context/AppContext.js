@@ -9,9 +9,9 @@ export const AppContextProvider = ({ children }) => {
     const checkUpdate = async () => {
         const res = await _checkVersion()
         console.log(res);
-        if (version != res.version) {
-            setUpdate(true)
-        }
+        // if (version != res.version) {
+        //     setUpdate(true)
+        // }
     }
 
     useEffect(() => {

@@ -10,10 +10,13 @@ export default function Player({ url }) {
     const [resizeMode, setResizeMode] = useState("contain")
     const webview = useRef()
 
+
+
     const injected = `
     alert=''
     confirm=()=>false
     window.onbeforeunload=function(){}
+    
     document.querySelector(".jw-spacer").innerHTML='<div id="r-btn" style="display:flex; justify-content:end;margin:10px"><button style="padding:5px">Resize</button></div>'
     document.querySelector("#r-btn").addEventListener("click",function(){
         let fs=document.webkitIsFullScreen
@@ -21,6 +24,9 @@ export default function Player({ url }) {
       })
     document.addEventListener("fullscreenchange", function (e) {
          let fs=document.webkitIsFullScreen
+         alert=''
+         confirm=()=>false
+         window.onbeforeunload=function(){}
          window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,clicked:false})) 
         });`
 
@@ -116,10 +122,17 @@ export default function Player({ url }) {
                     startInLoadingState={true}
                     setBuiltInZoomControls={false}
                     onShouldStartLoadWithRequest={(req) => {
+
                         if (req.url.includes("gdriveplayer")) {
                             return true
                         }
-                        console.log(req.url);
+                        if (req.url.includes("membed")) {
+                            return true
+                        }
+                        if (req.url.includes("vidsrc.me")) {
+                            return true
+                        }
+                        console.log("blocked", req.url);
 
                         ToastAndroid.show("Bloacked Ad", ToastAndroid.SHORT)
                         return false
