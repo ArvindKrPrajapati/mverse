@@ -4,8 +4,10 @@ import WebView from 'react-native-webview'
 import { theme } from '../../utils/theme'
 import { OrientationLocker, PORTRAIT, LANDSCAPE } from 'react-native-orientation-locker';
 import RefreshLogo from '../../../assets/refresh.png'
+import { videoJs } from '../../utils/videoResize';
 export default function Browser({ route }) {
     const [url, setUrl] = useState(route.params.url)
+    const [filter, setFilter] = useState(route.params.filter)
     const [loading, setLoading] = useState(true)
     const [canGoBack, setCanGoBack] = useState(false)
     const [pageLoading, setPageLoading] = useState(false)
@@ -28,11 +30,17 @@ export default function Browser({ route }) {
         };
     }, [canGoBack]);
 
+
+
     const injected = `
+        ${videoJs}
         document.addEventListener("fullscreenchange", function (e) {
              let fs=document.webkitIsFullScreen
              window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs})) 
             });`
+
+
+
 
     return (
         <View style={{ flex: 1 }}>
@@ -84,9 +92,16 @@ export default function Browser({ route }) {
                 }}
 
                 onShouldStartLoadWithRequest={(req) => {
-                    if (req.url.includes(url)) {
+                    if (filter ? req.url.includes(filter) : req.url.includes(url)) {
                         return true
                     }
+                    if (req.url.includes("https://shortylinks.info")) {
+                        return true
+                    }
+                    if (req.url.includes("https://streamtape.to")) {
+                        return true
+                    }
+                    console.log(req.url);
                     ToastAndroid.show("Bloacked Ad", ToastAndroid.SHORT)
                     return false
                 }

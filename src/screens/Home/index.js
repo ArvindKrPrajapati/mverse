@@ -80,7 +80,7 @@ export default function Home({ navigation, route }) {
                             <View>
                                 <SwiperFlatList
                                     autoplay
-                                    autoplayDelay={3}
+                                    autoplayDelay={5}
                                     autoplayLoop
                                     autoplayLoopKeepAnimation
                                     showPagination

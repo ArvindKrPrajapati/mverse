@@ -10,8 +10,8 @@ const urls = [
     },
     {
         id: 2,
-        image: "https://mverseapp.herokuapp.com/assets/logo.png",
-        url: "https://mverseapp.herokuapp.com",
+        image: "https://mverseapp.netlify.app/assets/logo.png",
+        url: "https://mverseapp.netlify.app",
         name: "Mverse"
     },
     {

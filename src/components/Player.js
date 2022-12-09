@@ -1,68 +1,65 @@
 import { View, Text, StyleSheet, ActivityIndicator, ToastAndroid, StatusBar, Button, Pressable, TouchableHighlight } from 'react-native'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import WebView from 'react-native-webview'
 import { theme } from '../utils/theme'
 import { OrientationLocker, PORTRAIT, LANDSCAPE } from 'react-native-orientation-locker';
+import { videoJs } from '../utils/videoResize';
 
-export default function Player({ url }) {
+export default function Player({ url, refreshing, setRefreshing }) {
     const [loading, setLoading] = useState(true)
     const [fullScreen, setFullScreen] = useState(false)
-    const [resizeMode, setResizeMode] = useState("contain")
     const webview = useRef()
+
+    useEffect(() => {
+        if (webview && refreshing) {
+            webview.current?.reload()
+            setRefreshing(false)
+        }
+    }, [refreshing])
+
 
 
 
     const injected = `
-    alert=''
-    confirm=()=>false
-    window.onbeforeunload=function(){}
-    
-    document.querySelector(".jw-spacer").innerHTML='<div id="r-btn" style="display:flex; justify-content:end;margin:10px"><button style="padding:5px">Resize</button></div>'
-    document.querySelector("#r-btn").addEventListener("click",function(){
-        let fs=document.webkitIsFullScreen
-        window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,clicked:true})) 
-      })
-    document.addEventListener("fullscreenchange", function (e) {
-         let fs=document.webkitIsFullScreen
-         alert=''
-         confirm=()=>false
-         window.onbeforeunload=function(){}
-         window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,clicked:false})) 
-        });`
+        ${videoJs}
+        alert=''
+        confirm=()=>false
+        window.onbeforeunload=function(){}
+        
+        document.querySelector(".jw-spacer").innerHTML='<div id="r-btn" style="display:flex; justify-content:end;margin:10px"><button style="padding:5px">Resize</button></div>'
+        document.querySelector("#r-btn").addEventListener("click",function(){
+            let fs=document.webkitIsFullScreen
+            if(mode=="contain"){
+                video.style.objectFit="fill"
+                mode="fill"
+            }else if(mode=="fill"){
+                video.style.objectFit="cover"
+                mode="cover"
+            }else{
+                video.style.objectFit="contain"
+                mode="contain"
+            }
+            window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,mode})) 
+        })
+        document.addEventListener("fullscreenchange", function (e) {
+            let fs=document.webkitIsFullScreen
+            alert=''
+            confirm=()=>false
+            window.onbeforeunload=function(){}
+            window.ReactNativeWebView.postMessage(JSON.stringify({isFullScreen:fs,mode})) 
+            });`
 
 
-
-    const resizeVideo = () => {
-        switch (resizeMode) {
+    const resizeVideoOnStart = (mode) => {
+        switch (mode) {
             case "contain":
-                setResizeMode("contain")
                 contain()
                 break;
             case "fill":
-                setResizeMode("fill")
                 fill()
                 break;
             case "cover":
-                setResizeMode("cover")
                 cover()
-                break;
-            default:
-                break;
-        }
-    }
-    const handleClick = () => {
-        switch (resizeMode) {
-            case "contain":
-                setResizeMode("fill")
-                fill()
-                break;
-            case "fill":
-                setResizeMode("cover")
-                cover()
-                break;
-            case "cover":
-                setResizeMode("contain")
-                contain()
                 break;
             default:
                 break;
@@ -103,10 +100,7 @@ export default function Player({ url }) {
                     onMessage={(d) => {
                         const e = JSON.parse(d.nativeEvent.data)
                         setFullScreen(e.isFullScreen)
-                        resizeVideo()
-                        if (e.clicked) {
-                            handleClick()
-                        }
+                        resizeVideoOnStart(e.mode)
                     }}
 
 
@@ -150,9 +144,6 @@ export default function Player({ url }) {
                     source={{ uri: url }}
                 />
             </View>
-            {/* <TouchableHighlight onPress={handleClick} style={styles.resizeBtn}>
-                <Text style={styles.resizeText}>Resize video ( {resizeMode} )</Text>
-            </TouchableHighlight> */}
         </>
     )
 }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>test</title>
+    <style type="text/css" media="all">
+        video {
+            margin-top: 50px;
+            width: 100%;
+            height: 60vh;
+            transition: all .4s ease;
+        }
+
+
+        ::-webkit-media-controls {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <video src="a.mp4"></video>
+
+    <button onclick="play()">play</button>
+    <button onclick="pause()">pause</button>
+</body>
+<script type="text/javascript" charset="utf-8">
+    const video = document.querySelector("video")
+
+    function play() {
+        video.play()
+        video.requestFullscreen()
+    }
+
+    function pause() {
+        video.pause()
+    }
+    var mode = "contain"
+    var action = true;
+
+    const pinchZoom = (imageElement) => {
+
+        let start = {};
+
+        // Calculate distance between two fingers
+        const distance = (event) => {
+            return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
+        };
+
+        imageElement.addEventListener('touchstart', (event) => {
+            // console.log('touchstart', event);
+            if (event.touches.length === 2) {
+                action = true
+                event.preventDefault(); // Prevent page scroll
+
+                // Calculate where the fingers have started on the X and Y axis
+                start.x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
+                start.y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
+                start.distance = distance(event);
+            }
+        });
+
+        imageElement.addEventListener('touchmove', (event) => {
+            if (event.touches.length === 2 && action) {
+                event.preventDefault();
+                const deltaDistance = distance(event);
+                if (start.distance > deltaDistance) {
+                    if (mode == "cover") {
+                        imageElement.style.objectFit = "fill"
+                        mode = "fill"
+                    } else if (mode == "fill") {
+                        imageElement.style.objectFit = "contain"
+                        mode = "contain"
+                    }
+                    action = false
+                }
+                if (start.distance < deltaDistance) {
+                    if (mode == "contain") {
+                        imageElement.style.objectFit = "fill"
+                        mode = "fill"
+                    } else if (mode == "fill") {
+                        imageElement.style.objectFit = "cover"
+                        mode = "cover"
+                    }
+                    action = false
+                }
+            }
+        });
+
+        imageElement.addEventListener("touchend", () => {
+            action = true;
+        })
+
+
+    }
+
+    pinchZoom(video)
+</script>
+
+</html>

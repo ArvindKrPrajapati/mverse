@@ -18,6 +18,7 @@ const s = [
         url: ""
     }
 ]
+var khatrimazaUrl = ""
 
 export default function Play({ route, navigation }) {
 
@@ -28,8 +29,13 @@ export default function Play({ route, navigation }) {
     const [episodes, setEpisodes] = useState()
     const [openModal, setOpenModal] = useState(false)
     const [servers, setServers] = useState(s)
+    const [refreshing, setRefreshing] = useState(false)
 
     const [chnangeServerModal, setChnangeServerModal] = useState(false)
+
+    const onRefresh = () => {
+        setRefreshing(true)
+    }
 
     const getSeriesDetails = async () => {
         const sno = data.season_number
@@ -51,18 +57,34 @@ export default function Play({ route, navigation }) {
             s[0].url = urls[0] + data.imdb_id + "&type=series&season=" + data.season_number + "&episode=" + data.episode_number
             s[1].url = urls[1] + data.imdb_id + "/" + data.season_number + "-" + data.episode_number
             getSeriesDetails()
+            khatrimazaUrl = "https://khatrimazaful.biz/?s=" + route.params.series.title;
         } else {
             s[0].url = urls[0] + data.imdb_id
             s[1].url = urls[1] + data.imdb_id
+            khatrimazaUrl = "https://khatrimazaful.biz/?s=" + data.title
         }
         setServers(s)
         setUrl(servers[0].url);
     }, [])
     return (
         <>
-            <Player url={url} />
-            <Container style={styles.container}>
-                <TouchableHighlight
+            <Player url={url} refreshing={refreshing} setRefreshing={setRefreshing} />
+            <TouchableHighlight
+                underlayColor={theme.colors.secondary}
+                onPress={() => { setChnangeServerModal(true) }}
+            >
+                <View style={styles.changeServerBtn}>
+                    <Text style={{ fontSize: 15, fontWeight: "500", color: "#eee" }}>Change Server</Text>
+                    <Icon name='chevron-down' size={20} color="#eee" />
+                </View>
+            </TouchableHighlight>
+            <Container
+                style={styles.container}
+                isRefreshControl={true}
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+            >
+                {/* <TouchableHighlight
                     underlayColor={theme.colors.secondary}
                     onPress={() => { setChnangeServerModal(true) }}
                 >
@@ -70,7 +92,7 @@ export default function Play({ route, navigation }) {
                         <Text style={{ fontSize: 15, fontWeight: "500", color: "#eee" }}>Change Server</Text>
                         <Icon name='chevron-down' size={20} color="#eee" />
                     </View>
-                </TouchableHighlight>
+                </TouchableHighlight> */}
                 <Text style={styles.title}>{data.title || data.name}</Text>
                 {route.params.isTv && <Text style={[styles.title, { fontSize: 16 }]}>{route.params.series.title}</Text>}
 
@@ -196,6 +218,14 @@ export default function Play({ route, navigation }) {
                             showsHorizontalScrollIndicator={false}
                             showsVerticalScrollIndicator={false}
                         >
+                            <TouchableHighlight
+                                onPress={() => {
+                                    setChnangeServerModal(false)
+                                    navigation.navigate("Browser", { url: khatrimazaUrl, filter: "https://khatrimazaful.biz" })
+                                }}
+                                style={[styles.selectBtn, { backgroundColor: theme.colors.secondary }]}>
+                                <Text style={styles.bold}>Khatrimaza ( hindi might be available )</Text>
+                            </TouchableHighlight>
                             {
                                 servers.map((o) => (
                                     <TouchableHighlight
@@ -253,8 +283,6 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.primary,
         alignItems: "center",
         padding: 12,
-        margin: -10,
-        marginBottom: 10,
         justifyContent: "space-between"
     }
 })
